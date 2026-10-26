@@ -1,0 +1,82 @@
+diff --git a/wled00/dmx_input.cpp b/wled00/dmx_input.cpp
+index b5eebbb..01b0843 100644
+--- a/wled00/dmx_input.cpp
++++ b/wled00/dmx_input.cpp
+@@ -8,6 +8,7 @@
+ #endif
+ 
+ #include "dmx_input.h"
++#include "console_bus.h"   // console: ponte DMX<->USB
+ #include <rdm/responder.h>
+ 
+ void rdmPersonalityChangedCb(dmx_port_t dmxPort, rdm_header_t *request_header,
+@@ -190,7 +191,8 @@ void DMXInput::init(int8_t rxPin, int8_t txPin, int8_t enPin, uint8_t inputPortN
+     return;
+   }
+ 
+-  if (rxPin >= 0 && enPin >= 0 && txPin >= 0) {
++  // console: basta il pin RX (modulo RS485 a direzione fissa); TX ed EN possono essere -1
++  if (rxPin >= 0) {
+ 
+     const managed_pin_type pins[] = {
+         {(int8_t)txPin, false}, // these are not used as gpio pins, thus isOutput is always false.
+@@ -217,7 +219,7 @@ void DMXInput::init(int8_t rxPin, int8_t txPin, int8_t enPin, uint8_t inputPortN
+     }
+   }
+   else {
+-    DEBUG_PRINTLN("DMX input disabled due to rxPin, enPin or txPin not set");
++    DEBUG_PRINTLN("DMX input disabled due to rxPin not set");
+     return;
+   }
+ }
+@@ -242,6 +244,8 @@ void DMXInput::updateInternal()
+       if (!packet.is_rdm) {
+         const std::lock_guard<std::mutex> lock(dmxDataLock);
+         dmx_read(inputPortNum, dmxdata, packet.size);
++        // console: in modalita' USB il frame va al PC (ponte ENTTEC) e non al motore effetti di WLED
++        if (ConsoleBus::usbActive() && ConsoleBus::bus().dmxRx) ConsoleBus::bus().dmxRx(dmxdata, packet.size);
+       }
+     }
+     else {
+@@ -259,6 +263,7 @@ void DMXInput::updateInternal()
+ 
+ void DMXInput::update()
+ {
++  if (ConsoleBus::usbActive()) return;   // console: in modalita' USB il DMX in ingresso non comanda WLED
+   if (identify) {
+     turnOnAllLeds();
+   }
+diff --git a/wled00/wled.cpp b/wled00/wled.cpp
+index a21d3cd..c0eb61c 100644
+--- a/wled00/wled.cpp
++++ b/wled00/wled.cpp
+@@ -473,8 +473,11 @@ void WLED::setup()
+ #if defined(WLED_DEBUG) && !defined(WLED_DEBUG_HOST)
+   PinManager::allocatePin(hardwareTX, true, PinOwner::DebugOut); // TX (GPIO1 on ESP32) reserved for debug output
+ #endif
+-#ifdef WLED_ENABLE_DMX //reserve GPIO2 as hardcoded DMX pin
+-  PinManager::allocatePin(2, true, PinOwner::DMX);
++#ifdef WLED_ENABLE_DMX //reserve the DMX output pin (GPIO2 by default; console: -D DMX_TX_PIN=17)
++  #ifndef DMX_TX_PIN
++    #define DMX_TX_PIN 2
++  #endif
++  PinManager::allocatePin(DMX_TX_PIN, true, PinOwner::DMX);
+ #endif
+ 
+   DEBUG_PRINTF_P(PSTR("heap %u\n"), getFreeHeapSize());
+diff --git a/wled00/xml.cpp b/wled00/xml.cpp
+index e778d96..785c780 100644
+--- a/wled00/xml.cpp
++++ b/wled00/xml.cpp
+@@ -123,7 +123,10 @@ static void appendGPIOinfo(Print& settingsScript)
+   }
+   #ifdef WLED_ENABLE_DMX
+   if (!firstPin) settingsScript.print(',');
+-  settingsScript.print(2); // DMX hardcoded pin
++  #ifndef DMX_TX_PIN
++    #define DMX_TX_PIN 2
++  #endif
++  settingsScript.print(DMX_TX_PIN); // DMX hardcoded pin
+   firstPin = false;
+   #endif
+   #if defined(WLED_DEBUG) && !defined(WLED_DEBUG_HOST)

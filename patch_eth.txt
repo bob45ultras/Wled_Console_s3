@@ -1,0 +1,130 @@
+W5500 ETHERNET — WHAT TO COPY, PATCH AND TEST
+Working folder: WLED-main\   (tested for building on wled/WLED main, commit 20e7a71 of 25/10/2026, arduino-esp32 3.3.8)
+
+=================================================================================
+1) FILES TO COPY
+=================================================================================
+console_update.zip (and the Wled_Console_s3 repository) already has the WLED-main layout: extract/copy it OVER the
+WLED-main folder (confirm overwrite).
+New for Ethernet:
+  wled00\eth_w5500.cpp              new   W5500 support (replaces WLED's RMII-only Ethernet code in this build)
+  usermods\console_eth\             new   Info-page row with the Ethernet state (link, speed, IP)
+  eth_patch\patch_core_eth.diff     the patch of point 2
+  platformio_override.ini           updated: new environment console_s3_eth
+  patch_eth.txt                     these instructions
+(If you made your own changes to platformio_override.ini, merge them by hand instead of overwriting.)
+
+=================================================================================
+2) CORE PATCH  (6 small files: cfg.cpp, const.h, network.cpp, wled_ethernet.h, wled_serial.cpp, xml.cpp)
+=================================================================================
+From PowerShell, in the WLED-main folder:
+
+    git apply --ignore-whitespace --check eth_patch\patch_core_eth.diff
+    git apply --ignore-whitespace eth_patch\patch_core_eth.diff
+
+--check changes nothing. It is independent from patch_core_dmx.diff: either order works.
+Everything is behind -D WLED_USE_ETHERNET_SPI, so the normal build (console_s3) is not affected.
+After a "git pull" of WLED the patch may need to be redone (same as the DMX and ALT patches).
+
+What it does:
+  - eth_w5500.cpp provides initEthernet() for the W5500 using the driver built into the Arduino core
+    (ETH.begin with ETH_PHY_W5500); link events, DHCP/static IP, hostname and mDNS are WLED's own.
+  - network.cpp: WLED's RMII Ethernet code is not compiled in this build (the S3 has no RMII).
+  - const.h / wled_ethernet.h: two Ethernet types in this build (0 = None, 1 = W5500) and the six W5500 pins
+    as "reserved pins"; the default LED pin stays as in the normal build.
+  - cfg.cpp / xml.cpp: skip the RMII-only pin lists; Config > WiFi Setup > "Ethernet Type" offers only
+    None / W5500 (SPI).
+  - wled_serial.cpp: a serial baud-rate change can no longer take UART0 (GPIO43/44) back from the W5500.
+
+=================================================================================
+3) BUILD AND FLASH
+=================================================================================
+    pio run -e console_s3_eth -t upload        (WiFi-only firmware stays:  console_s3)
+
+The Ethernet type is already "W5500 (SPI)" by default (-D WLED_ETH_DEFAULT=1). Settings are kept.
+
+=================================================================================
+4) WIRING
+=================================================================================
+    W5500 module     ESP32-S3
+    SCLK             GPIO12
+    MOSI             GPIO11
+    MISO             GPIO13
+    SCS (CS)         GPIO10
+    INT              not connected (the chip is polled every 10 ms, -D WLED_W5500_INT=-1 in the ini)
+    RST              GPIO43   must be connected
+    3.3V / GND       3.3V / GND  (the module draws ~130 mA while linked: keep wires short, decouple the supply)
+
+Supply: the W5500 is a 3.3 V chip. Use the devkit's 3V3 pin. Feed 5 V only to a pin labelled 5V/VIN of a module that has
+an on-board regulator; 5 V on a 3.3V/VCC pin can damage the chip and puts 5 V levels on MISO/INT, which the S3 does not tolerate.
+
+IMPORTANT - do not wire INT to GPIO44: that pin is the UART0 RX, the line the devkit's USB-serial bridge uses to
+program the board. An INT wire there makes the upload fail with "Download mode successfully detected, but getting
+no sync reply: The serial TX path seems to be down". Polling is enough for this application.
+If the upload still fails, hold BOOT, tap RESET, release BOOT and upload through the native USB port.
+
+GPIO43 is the UART0 TX. In this build UART0 is released at start-up and the pin belongs to the W5500 (RST):
+  - there is NO serial log and no serial Adalight/Improv (the native USB keeps working: MIDI + DMX COM port);
+  - the ROM bootloader still prints on GPIO43 for ~100 ms after reset: the W5500 is reset afterwards, so these
+    glitches on RST are harmless.
+Other pins used by the console are untouched (10-13 and 43/44 were free).
+
+Check the module BEFORE wiring it: with the module unpowered, MISO to GND must not read a short or a very low
+resistance. Prefer a WIZnet WIZ850io or a clone that states it is WIZ850io-compatible, with clearly printed pins;
+check its pinout in the datasheet and wire by the printed names, not by position.
+
+=================================================================================
+5) FIRST TEST (in this order)
+=================================================================================
+  1. Connect the cable to a router/switch, power the console.
+  2. WLED Info page -> row "Console-ETH". Meaning:
+       "100 Mbps full, 192.168.x.x"           working.
+       "disabled (Config > WiFi Setup)"       Ethernet Type is None: choose "W5500 (SPI)", save, reboot.
+       "wires differ: chip answers with SCLK=a MOSI=b MISO=c CS=d"
+                                              the firmware resets the chip, reads its version register and, if the
+                                              configured pins get no answer, tries the four SPI wires in every other
+                                              role assignment. This one worked: two wires are swapped. Fix the cabling
+                                              or put these numbers in the WLED_W5500_* flags of the ini.
+       "no answer: ver AABBCCDD phy PP, MISO idle x/y | SCLK ok MOSI ok CS ok RST ok MISO ok"
+                                              nothing answers on any assignment of those four wires.
+                                              ver = the 4 bytes read back (the last one should be 04), phy = register
+                                              0x2E (a live W5500 gives B8..BF). MISO idle x/y = level of the MISO pin
+                                              with pull-down / pull-up while the chip is deselected:
+                                                0/1  floating: normal, the wire is not shorted;
+                                                0/0  held low: short to GND, or the module/chip drives it;
+                                                1/1  held high: short to 3.3V.
+                                              The last part is an electrical check of each wire, done before the chip
+                                              is touched: ok, L = stuck low (short to GND or very low resistance),
+                                              H = stuck high (short to 3.3V), x = follows another wire (bridged).
+                                              Note that it also sees the module's input pins, so a module pin tied to
+                                              GND/3.3V on the board shows up here too.
+                                              If every wire is ok, MISO idle is 0/1 and all bytes are 00 (or FF):
+                                              the chip is not powered or is held in reset (check the RJ45 LEDs and 3.3V
+                                              on the module's own pins), or one of the wires does not reach the chip,
+                                              or the module itself is faulty.
+       "SPI bus setup failed"                 the SPI2 host could not be initialised (report it).
+       "chip OK (v4) but driver init failed"  wiring and chip are fine, the problem is in the software: report it.
+       "not started: pins already in use"     one of the six pins is taken by another feature (Config > Hardware).
+       "link down (cable?)"                   chip found but no link: cable, switch port.
+       "link 100 Mbps full, waiting for IP"   no DHCP answer: router, or set a static IP (below).
+  2b. Without flashing anything: with the cable plugged into a live switch, the RJ45 LEDs of the module must light
+      (the chip negotiates the link by itself once powered and out of reset). No LED = no power or RST held low.
+  3. Hold GO for 3 s: the OLED network screen shows the IP (Ethernet IP when connected by cable).
+  4. From the PC:  ping <IP>  and open  http://<IP>  (or the mDNS name set in Config > WiFi Setup).
+  5. Unplug the cable: WLED falls back to WiFi (or its AP) after a moment; plug it back: Ethernet returns.
+
+Static IP: the fields in Config > WiFi Setup (static IP / gateway / subnet) are shared with Ethernet.
+WiFi stays available as a fallback; if you do not want it, leave the SSID empty.
+The SPI clock is 10 MHz for the first test with jumper wires; once it works you can raise it
+(-D WLED_W5500_SPI_MHZ=20 ... up to 33).
+
+=================================================================================
+6) LIMITS / NOTES
+=================================================================================
+  - Status: the build compiles and the driver is linked. The first module tried was faulty (its MISO output was held
+    low even with SCS tied to 3.3 V), so the start-up path with a live chip has not been tested yet. A working module
+    should report speed and IP on the Console-ETH row within a few seconds of power-up.
+  - Ethernet (E1.31 / Art-Net / UDP sync / web UI) works like on any WLED Ethernet board.
+  - W5500 uses the SPI2 host; LED chips driven by hardware SPI (APA102, WS2801...) use the other one (HSPI), so
+    they do not collide.
+  - Do not use UART0 for anything else in this build (e.g. GPIO43/44 as normal I/O is fine, a serial log is not).

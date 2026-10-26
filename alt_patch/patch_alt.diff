@@ -1,0 +1,27 @@
+diff --git a/usermods/usermod_v2_four_line_display_ALT/usermod_v2_four_line_display_ALT.cpp b/usermods/usermod_v2_four_line_display_ALT/usermod_v2_four_line_display_ALT.cpp
+index da6605c..67b1a26 100644
+--- a/usermods/usermod_v2_four_line_display_ALT/usermod_v2_four_line_display_ALT.cpp
++++ b/usermods/usermod_v2_four_line_display_ALT/usermod_v2_four_line_display_ALT.cpp
+@@ -749,5 +749,5 @@ bool FourLineDisplayUsermod::handleButton(uint8_t b) {
+   yield();
+   if (!enabled
+-    || b // button 0 only
++    || true // (console) disabled: the network screen opens with the GO button
+     || buttons[b].type == BTN_TYPE_SWITCH
+     || buttons[b].type == BTN_TYPE_NONE
+diff --git a/usermods/usermod_v2_rotary_encoder_ui_ALT/usermod_v2_rotary_encoder_ui_ALT.cpp b/usermods/usermod_v2_rotary_encoder_ui_ALT/usermod_v2_rotary_encoder_ui_ALT.cpp
+index f7e9086..76793f3 100644
+--- a/usermods/usermod_v2_rotary_encoder_ui_ALT/usermod_v2_rotary_encoder_ui_ALT.cpp
++++ b/usermods/usermod_v2_rotary_encoder_ui_ALT/usermod_v2_rotary_encoder_ui_ALT.cpp
+@@ -1,3 +1,4 @@
+ #include "wled.h"
++#include "console_bus.h"
+ 
+ //
+@@ -552,5 +553,5 @@ void RotaryEncoderUIUsermod::setup()
+ void RotaryEncoderUIUsermod::loop()
+ {
+-  if (!enabled) return;
++  if (!enabled || ConsoleBus::usbActive()) return;
+   unsigned long currentTime = millis(); // get the current elapsed time
+   if (strip.isUpdating() && ((currentTime - loopTime) < ENCODER_MAX_DELAY_MS)) return;  // be nice, but not too nice

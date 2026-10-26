@@ -1,0 +1,4 @@
+{
+  "name": "console_eth",
+  "build": { "libArchive": false }
+}

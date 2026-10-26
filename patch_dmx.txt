@@ -1,0 +1,129 @@
+CONSOLE DMX — WHAT TO COPY AND WHAT TO PATCH
+Working folder: WLED-main\   (tested on wled/WLED main, commit 20e7a71 of 2026-10-25)
+See also CONSOLE_README.md (overview, installation, settings).
+
+=================================================================================
+1) FILES TO COPY
+=================================================================================
+console_update.zip (and the Wled_Console_s3 repository) already has the WLED-main layout: extract/copy it OVER the
+WLED-main folder (confirm the overwrite).
+For DMX it contains:
+  usermods\console_dmx\                  DMX usermod (ENTTEC bridge + standalone DMX)
+  usermods\console_usb\                  exposes the COM port to the bridge
+  wled00\console_bus.h                   shared state
+  wled00\src\dependencies\dmx\SparkFunDMX.cpp / .h   REPLACE WLED's original files
+  platformio_override.ini                WLED_ENABLE_DMX, DMX_TX_PIN=17, console_dmx
+  dmx_patch\patch_core_dmx.diff          the patch of point 2
+  patch_dmx.txt                          these instructions
+(If you made your own changes to platformio_override.ini, merge them by hand instead of overwriting it.)
+
+=================================================================================
+2) CORE PATCH  (3 small files: dmx_input.cpp, wled.cpp, xml.cpp)
+=================================================================================
+From PowerShell, in the WLED-main folder:
+
+    git apply --ignore-whitespace --check dmx_patch\patch_core_dmx.diff
+    git apply --ignore-whitespace dmx_patch\patch_core_dmx.diff
+
+--check changes nothing. If it fails, make the 6 changes below by hand.
+(If it fails because the patch is already applied, "git apply --reverse --check" succeeds: skip it.)
+
+  wled00\dmx_input.cpp
+    a) after   #include "dmx_input.h"   add   #include "console_bus.h"
+    b) in DMXInput::init():   if (rxPin >= 0 && enPin >= 0 && txPin >= 0) {
+                          ->  if (rxPin >= 0) {
+       (the input RS485 module has a fixed direction: only RX is needed, not TX or EN)
+    c) in DMXInput::updateInternal(), right after   dmx_read(inputPortNum, dmxdata, packet.size);
+       add:
+        if (ConsoleBus::usbActive() && ConsoleBus::bus().dmxRx) ConsoleBus::bus().dmxRx(dmxdata, packet.size);
+    d) as the first line of DMXInput::update() add:
+        if (ConsoleBus::usbActive()) return;
+
+  wled00\wled.cpp   (around line 476)
+    PinManager::allocatePin(2, true, PinOwner::DMX);   ->   use DMX_TX_PIN instead of 2
+    (wrapped in:  #ifndef DMX_TX_PIN / #define DMX_TX_PIN 2 / #endif)
+    Without this change WLED reserves GPIO2, which is your fader 2: the fader would be disabled.
+
+  wled00\xml.cpp   (around line 126)
+    settingsScript.print(2); // DMX hardcoded pin   ->   settingsScript.print(DMX_TX_PIN);
+    (cosmetic only: the settings page shows the right pin as reserved)
+
+The two "ALT" usermods (encoder, display) need their own patch: alt_patch\patch_alt.diff (see CONSOLE_README.md).
+After a "git pull" of WLED these patches may need to be redone.
+
+=================================================================================
+3) WHAT IT DOES, IN SHORT
+=================================================================================
+Standalone
+  - OUTPUT: SparkFunDMX replaced: a dedicated task refreshes the line at ~40 Hz, update() no longer blocks.
+            UART2, TX = GPIO17.
+  - INPUT:  WLED's esp_dmx on UART1, RX = GPIO18, without TX/EN pins.
+            console_dmx sets these values at every boot (Config > Usermods > Console-DMX, "force-pins").
+            DMX mode and address are set as usual in Config > Sync Interfaces.
+USB mode (PC connected)
+  - the console's COM port speaks "ENTTEC DMX USB Pro":
+      PC -> console : frame (label 6)    -> RS485 output (GPIO17)
+      console -> PC : frames received on GPIO18 (label 5)
+      replies to label 3 (parameters) and 10 (serial number)
+  - WLED's DMX is suspended: incoming frames do not touch the effects, the DMX output does not show the pixels.
+  - back in standalone, WLED takes the output again by itself.
+
+=================================================================================
+4) COMPATIBILITY WITH AUDIOREACTIVE  (result of the code analysis)
+=================================================================================
+  - Pins: audioreactive uses 14/21/47/48 (I2S), DMX uses 17/18: no conflict.
+  - Cores: the FFT task (priority 1) and the DMX receive task (priority 2) are both on core 0: DMX has precedence,
+    the FFT does not disturb it (it waits for the I2S DMA).
+  - Realtime: audioreactive pauses audio processing while WLED is in "realtime" (audio_reactive.cpp, line ~1555).
+    DMX puts WLED in realtime ONLY in the modes that drive the pixels directly (SINGLE_RGB, SINGLE_DRGB, MULTIPLE_*).
+    This is intended and harmless: effects are not visible in those modes, so audio is not needed.
+    In the EFFECT / EFFECT_W / EFFECT_SEGMENT* modes (DMX selects effect, speed, colors) there is NO realtime:
+    audio-reactive effects run normally. No patch needed.
+  - Real problems that stock DMX would have caused, solved here:
+      * WLED's DMX output blocked the loop ~24 ms on every pass -> the encoder (polled) lost steps
+      * input (default UART2) and output (UART2) on the same UART
+      * GPIO2 reserved by DMX = fader 2
+      * WLED's DMX input does not start unless RX, TX and EN are all set
+
+=================================================================================
+5) HOW TO TEST (in this order)
+=================================================================================
+  1. Build and flash (env console_s3). On WLED's Info page the "Console-DMX" row must appear.
+  2. Config > Usermods > Console-DMX: check "dmx-in-pin 18", "dmx-in-port 1".
+  3. Config > Sync Interfaces: DMX Output section (start address, channels per fixture) and DMX Input (mode + address).
+  4. Output: connect a light/decoder (or a DMX tester) to the RS485 module on GPIO17. Info > "Console-DMX" shows
+     "output N frames", growing by ~40 per second.
+  5. Input: connect a DMX controller to the module on GPIO18. Info shows "input receiving".
+  6. USB: connect the PC (the OLED must show "MIDI-USB"). In Device Manager > Ports (COM & LPT)
+     there is "USB Serial Device (COMx)": that is the DMX port (MIDI is a separate device).
+     Test the bridge WITHOUT third-party programs with the test_enttec.ps1 script:
+         powershell -ExecutionPolicy Bypass -File .\test_enttec.ps1 -Port COM7      (use your COM port)
+     It must show the replies to the serial number and parameters requests, then send frames for 5 seconds; on WLED's Info
+     page the Console-DMX row must say "ENTTEC USB: PC>DMX n ..." with n growing.
+
+  WARNING: QLC+ does NOT see this device. Its "DMX USB" plugin only recognises interfaces with an FTDI chip
+  (FTDI VID/PID, D2XX driver), while the console is a native USB device of the ESP32-S3 (VID 303A). This is not a
+  firmware defect. Possible ways:
+   a) programs that speak the ENTTEC Pro protocol on any COM port (for example TouchDesigner, Python scripts with
+      pyserial): you pick the COM port and it works. Check case by case: many programs use the FTDI driver.
+   b) for QLC+, output only: use the network. In WLED, Config > DMX Output > "Proxy Universe" = N, and in QLC+ set the
+      Art-Net (or E1.31) output towards the console's IP, universe N. DMX comes out on GPIO17 without USB.
+      DMX input towards the PC only goes through the USB bridge.
+   Do not fake FTDI's VID/PID (0403:6001): the VID belongs to FTDI and Windows would load its driver, which does not
+   talk to the console.
+
+KNOWN LIMITS
+  - RDM is not available (the input module cannot transmit).
+  - In USB mode the DMX output keeps the last frame received from the PC even if the program closes the COM port
+    (it changes only when USB is unplugged or the console goes back to standalone: then the output resumes from WLED).
+  - Towards the PC, frames (label 5) are sent only when they change, plus a refresh every 250 ms (the COM port has a
+    64-byte buffer: one frame is ~9 USB packets, so sending all of them at 44 per second is avoided). ENTTEC's
+    "receive on change" mode with label 9 packets is not implemented: whole frames always arrive.
+  - With the W5500 (Ethernet): GPIO43/44 are UART0 TX/RX (log). DMX does not use them, no conflict.
+
+REBOOT INTO DOWNLOAD MODE (console_usb.cpp, changed after the first test)
+  The Arduino core reboots the board into download mode when the COM port sees esptool's DTR/RTS sequence or an open at
+  1200 baud: the board looks frozen until you reset it. It can happen when a program closes the port. It is now
+  disabled by default ("bootloader-reset" option in Config > Usermods > Console-USB).
+  If you upload firmware over the native USB instead of the UART port, enable it (needs a reboot) or use
+  BOOT + RESET.
