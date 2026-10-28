@@ -61,7 +61,7 @@ module, battery/power stage.
 </tr>
 <tr>
 <td width="50%"><img src="docs/images/console-front-angled.jpg" alt="Angled view of the console with purple backlight" width="100%"><br><sub>Angled view, purple backlight.</sub></td>
-<td width="50%"><img src="docs/images/rear-connectors.jpg" alt="Rear panel with audio inputs, XLR DMX connectors, Ethernet and the WiFi antenna" width="100%"><br><sub>Rear panel: audio inputs, XLR DMX connectors, Ethernet and the WiFi antenna.</sub></td>
+<td width="50%"><img src="docs/images/rear-connectors.jpg" alt="Rear panel with audio inputs, XLR DMX connectors, Ethernet and the WiFi antenna" width="100%"><br><sub>Rear panel: USB-C, audio inputs and outputs, XLR DMX connectors, Ethernet, WiFi antenna and UART port.</sub></td>
 </tr>
 </table>
 
