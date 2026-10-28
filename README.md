@@ -1,5 +1,9 @@
 # Wled_Console_s3
 
+<p align="center">
+  <img src="docs/images/console-front.jpg" alt="The finished console: four faders, eight macro buttons, OLED display, rotary encoder and the BLACKOUT, GO, BACK and SHIFT buttons" width="820">
+</p>
+
 A standalone lighting console built on [WLED](https://github.com/wled/WLED) for the ESP32-S3 (ESP32-S3-WROOM-1 N16R8).
 It runs without a computer, driven by hardware controls, and becomes a USB MIDI controller and a DMX-USB interface
 when connected to a PC.
@@ -29,7 +33,7 @@ Tested on wled/WLED `main` commit `20e7a71` (2026-10-25), arduino-esp32 3.3.8.
 git clone https://github.com/wled/WLED.git WLED-main
 git -C WLED-main checkout 20e7a71
 git clone https://github.com/bob45ultras/Wled_Console_s3.git
-robocopy Wled_Console_s3 WLED-main /E /XD .git /XF README.md LICENSE
+robocopy Wled_Console_s3 WLED-main /E /XD .git docs /XF README.md LICENSE
 cd WLED-main
 git apply --ignore-whitespace dmx_patch\patch_core_dmx.diff
 git apply --ignore-whitespace alt_patch\patch_alt.diff
@@ -45,6 +49,46 @@ Everything else (wiring, settings, MIDI map, DMX, troubleshooting, status) is in
 Verified on hardware: faders (including SHIFT + color fader = palette), standalone buttons, USB MIDI (faders, buttons, encoder),
 OLED "MIDI-USB" screen, ENTTEC bridge (PC test script), line-in audio. Pending: DMX on real equipment, W5500 with a working
 module, battery/power stage.
+
+## Gallery
+
+**The console**
+
+<table>
+<tr>
+<td width="50%"><img src="docs/images/console-front-purple.jpg" alt="Front panel with purple backlight" width="100%"><br><sub>Front panel, purple backlight.</sub></td>
+<td width="50%"><img src="docs/images/console-front-angled-cyan.jpg" alt="Angled view of the console with cyan backlight" width="100%"><br><sub>Angled view, cyan backlight.</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="docs/images/console-front-angled.jpg" alt="Angled view of the console with purple backlight" width="100%"><br><sub>Angled view, purple backlight.</sub></td>
+<td width="50%"><img src="docs/images/rear-connectors.jpg" alt="Rear panel with audio inputs, XLR DMX connectors, Ethernet and the WiFi antenna" width="100%"><br><sub>Rear panel: audio inputs, XLR DMX connectors, Ethernet and the WiFi antenna.</sub></td>
+</tr>
+</table>
+
+**Controls and display**
+
+<table>
+<tr>
+<td width="50%"><img src="docs/images/controls-go-back-shift.jpg" alt="BLACKOUT, GO, BACK and SHIFT buttons" width="100%"><br><sub>BLACKOUT, GO, BACK and SHIFT buttons.</sub></td>
+<td width="50%"><img src="docs/images/controls-macros-encoder.jpg" alt="Eight macro buttons and the rotary encoder" width="100%"><br><sub>Eight macro buttons and the rotary encoder.</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="docs/images/oled-wled-screen.jpg" alt="OLED display showing the WLED status screen" width="100%"><br><sub>OLED: WLED status screen.</sub></td>
+<td width="50%"><img src="docs/images/oled-midi-usb.jpg" alt="OLED display showing the MIDI-USB screen" width="100%"><br><sub>OLED in USB mode: "MIDI-USB, controls via USB".</sub></td>
+</tr>
+<tr>
+<td width="50%" colspan="2" align="center"><img src="docs/images/oled-power-blackout.jpg" alt="Power button, OLED display and BLACKOUT button" width="50%"><br><sub>Power button, OLED and BLACKOUT button.</sub></td>
+</tr>
+</table>
+
+**Construction**
+
+<table>
+<tr>
+<td width="50%"><img src="docs/images/build-front-plate.jpg" alt="Control plate with faders, buttons and rotary encoder mounted, before wiring" width="100%"><br><sub>Control plate with faders, buttons and rotary encoder mounted, before wiring.</sub></td>
+<td width="50%"><img src="docs/images/build-internals.jpg" alt="Wired control plate and electronics bay with the ESP32-S3 board and the W5500 Ethernet module" width="100%"><br><sub>Wired control plate (left) and electronics bay (right) with the ESP32-S3 board and the W5500 Ethernet module.</sub></td>
+</tr>
+</table>
 
 ## License
 

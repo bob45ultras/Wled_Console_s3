@@ -74,13 +74,13 @@ Contents: [1 Hardware](#1-hardware) · [2 Package contents](#2-package-contents)
 Requirements: PlatformIO (VS Code extension or CLI), git, a WLED `main` checkout (`WLED-main\`, a git repository).
 
 **1. Copy the files.** Extract `console_update.zip` over `WLED-main\` and confirm the overwrite. From the repository
-instead (PowerShell; `README.md` and `LICENSE` are excluded so WLED's own are kept):
+instead (PowerShell; `README.md` and `LICENSE` are excluded so WLED's own are kept, and `docs` holds only photos):
 
 ```powershell
 git clone https://github.com/wled/WLED.git WLED-main
 git -C WLED-main checkout 20e7a71          # the commit this was tested on
 git clone https://github.com/bob45ultras/Wled_Console_s3.git
-robocopy Wled_Console_s3 WLED-main /E /XD .git /XF README.md LICENSE
+robocopy Wled_Console_s3 WLED-main /E /XD .git docs /XF README.md LICENSE
 ```
 
 If you customised `platformio_override.ini`, merge by hand instead of overwriting it.
