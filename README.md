@@ -73,11 +73,11 @@ module, battery/power stage.
 <td width="50%"><img src="docs/images/controls-macros-encoder.jpg" alt="Eight macro buttons and the rotary encoder" width="100%"><br><sub>Eight macro buttons and the rotary encoder.</sub></td>
 </tr>
 <tr>
-<td width="50%"><img src="docs/images/oled-wled-screen.jpg" alt="OLED display showing the WLED status screen" width="100%"><br><sub>OLED: WLED status screen.</sub></td>
+<td width="50%"><img src="docs/images/oled-wled-screen.jpg" alt="OLED display showing the WLED status screen" width="100%"><br><sub>Power button, OLED and BLACKOUT button.</sub></td>
 <td width="50%"><img src="docs/images/oled-midi-usb.jpg" alt="OLED display showing the MIDI-USB screen" width="100%"><br><sub>OLED in USB mode: "MIDI-USB, controls via USB".</sub></td>
 </tr>
 <tr>
-<td width="50%" colspan="2" align="center"><img src="docs/images/oled-power-blackout.jpg" alt="Power button, OLED display and BLACKOUT button" width="50%"><br><sub>Power button, OLED and BLACKOUT button.</sub></td>
+<td width="50%" colspan="2" align="center"><img src="docs/images/oled-power-blackout.jpg" alt="Power button, OLED display and BLACKOUT button" width="50%"><br><sub>OLED: WLED status screen.</sub></td>
 </tr>
 </table>
 
