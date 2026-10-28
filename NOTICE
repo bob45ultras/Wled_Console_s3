@@ -50,7 +50,7 @@ downloaded into .pio/libdeps when you build) when you distribute binaries.
 MIT License
 
 Copyright (c) 2019 SparkFun Electronics (Andy England)
-Copyright (c) 2026 E-Boats Systems (modifications)
+Copyright (c) 2026 E-Boats Systems (https://www.eboatsystems.com) (modifications)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
 documentation files (the "Software"), to deal in the Software without restriction, including without limitation

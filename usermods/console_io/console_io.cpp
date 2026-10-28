@@ -391,13 +391,9 @@ class ConsoleIO : public Usermod {
     }
 
     void addToJsonInfo(JsonObject& root) override {
+      if (!enabled) return;
       JsonObject user = root["u"];
       if (user.isNull()) user = root.createNestedObject("u");
-      // manufacturer's website: always shown (the Info page renders the value as HTML)
-      JsonArray web = user.createNestedArray(F("E-Boats Systems"));
-      web.add(F("<a href=\"https://www.eboatsystems.com\" target=\"_blank\" rel=\"noopener\">www.eboatsystems.com</a>"));
-      web.add(F(""));
-      if (!enabled) return;
       JsonArray arr = user.createNestedArray(FPSTR(_name));
       char buf[72];
       if (noI2c) {

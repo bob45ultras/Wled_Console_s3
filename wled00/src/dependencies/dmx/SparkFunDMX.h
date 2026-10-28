@@ -12,7 +12,7 @@ Same interface used by WLED (initWrite / write / update), but:
 
 Original: SparkFun ESP32 LED to DMX Shield library, Andy England @ SparkFun Electronics, 7/22/2019,
 released under the MIT License (http://opensource.org/licenses/MIT), distributed as-is, no warranty.
-Modifications: Copyright (c) 2026 E-Boats Systems, released under the same MIT License.
+Modifications: Copyright (c) 2026 E-Boats Systems (https://www.eboatsystems.com), released under the same MIT License.
 ******************************************************************************/
 
 #include <inttypes.h>

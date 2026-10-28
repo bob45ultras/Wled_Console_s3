@@ -348,7 +348,6 @@ Config → Usermods. Pin changes take effect after a reboot.
 | Console-USB | `USB mode (MIDI), MIDI sent: 1234`; `standalone (manual)`; `PC connected, waiting`; `not connected` |
 | Console-DMX | `standalone, input receiving, output 4210 frames`; `ENTTEC USB: PC>DMX 150, DMX>PC 12, dropped 0` |
 | Console-ETH | `100 Mbps full, 192.168.1.50` and the error messages listed in `patch_eth.txt` |
-| E-Boats Systems | link to [www.eboatsystems.com](https://www.eboatsystems.com), always shown (added by Console-IO) |
 
 ---
 

@@ -21,7 +21,7 @@ DMX512 frame timing:
 
 Original: SparkFun ESP32 LED to DMX Shield library, Andy England @ SparkFun Electronics, 7/22/2019,
 released under the MIT License (http://opensource.org/licenses/MIT), distributed as-is, no warranty.
-Modifications: Copyright (c) 2026 E-Boats Systems, released under the same MIT License.
+Modifications: Copyright (c) 2026 E-Boats Systems (https://www.eboatsystems.com), released under the same MIT License.
 ******************************************************************************/
 
 #if !defined(ESP8266) && !defined(CONFIG_IDF_TARGET_ESP32C3) && !defined(CONFIG_IDF_TARGET_ESP32C5) && !defined(CONFIG_IDF_TARGET_ESP32C6) && !defined(CONFIG_IDF_TARGET_ESP32C61) && !defined(CONFIG_IDF_TARGET_ESP32S2)
