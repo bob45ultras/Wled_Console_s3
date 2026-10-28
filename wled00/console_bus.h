@@ -33,6 +33,9 @@ enum : uint8_t {
 struct Bus {
   volatile bool     usb      = false;     // true: PC connected and active -> USB mode
   volatile uint32_t usbEpoch = 0;         // +1 at every activation of USB mode (to resynchronize the PC)
+  volatile bool     shift     = false;    // SHIFT (MCP23017 PA0) is pressed, debounced; written by console_io
+  volatile bool     shiftUsed = false;    // a usermod used SHIFT as a modifier (e.g. SHIFT + color fader):
+                                          // console_io then cancels the "hold SHIFT = switch mode" action
   void (*sendNote)(uint8_t note, bool on)       = nullptr;
   void (*sendCC)(uint8_t cc, uint8_t value)     = nullptr;
   void (*toggleMode)()                          = nullptr;   // manual switch USB <-> standalone (SHIFT held down)

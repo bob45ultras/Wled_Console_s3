@@ -8,6 +8,7 @@
  *   Fader 2 (GPIO2) -> Effect speed
  *   Fader 3 (GPIO4) -> Effect intensity
  *   Fader 4 (GPIO5) -> Primary color (hue, full saturation)
+ *                      with SHIFT held: Palette instead (see below)
  *
  * Reads the ADC directly in loop() (no native "Analog Button", which is throttled).
  *
@@ -21,6 +22,13 @@
  * At boot every fader starts INACTIVE (no value jump at power-up).
  * When a fader takes control, the value jumps to the fader position.
  *
+ * SHIFT + color fader (standalone only): the fader selects the palette instead of the hue. The travel is
+ * divided evenly among all palettes in the same order as WLED's palette list (built-in, usermod, custom).
+ * The function is chosen when the fader takes control; if SHIFT is pressed or released while the fader
+ * is in control, it lets go (no jump) and must be moved again to take control with the new function.
+ * Using the fader this way also cancels the "hold SHIFT = switch USB/standalone" action.
+ * In USB mode the fader only sends its MIDI CC, with or without SHIFT.
+ *
  * Calibration: the raw ADC values are shown on the WLED Info page
  * ("Console-Faders"). Note the value with the fader fully down and fully up,
  * then enter them in Config > Usermods as raw-min / raw-max.
@@ -29,7 +37,8 @@
 class ConsoleFaders : public Usermod {
   private:
     enum { NUM = 4 };
-    enum : uint8_t { FN_BRI = 0, FN_SPEED = 1, FN_INTENSITY = 2, FN_COLOR = 3 };
+    enum : uint8_t { FN_BRI = 0, FN_SPEED = 1, FN_INTENSITY = 2, FN_COLOR = 3,
+                     FN_PALETTE = 4 };     // FN_PALETTE: not a fader, the SHIFT function of the color fader
 
     static const unsigned long SAMPLE_MS = 8;    // sampling period
     static const unsigned long APPLY_MS  = 25;   // max ~40 updates/s towards WLED
@@ -37,6 +46,7 @@ class ConsoleFaders : public Usermod {
     // --- configuration (Config > Usermods) ---
     bool enabled = true;
     bool invert  = true;  // true = inverted faders (up = maximum value)
+    bool shiftPalette = true;   // SHIFT + color fader = palette
     int  pins[NUM] = {1, 2, 4, 5};
     int  rawMin = 40;     // ADC reading with the fader fully down
     int  rawMax = 4050;   // ADC reading with the fader fully up (the S3 ADC saturates at ~3.1V)
@@ -55,6 +65,7 @@ class ConsoleFaders : public Usermod {
     int16_t  appliedRaw[NUM] = {0, 0, 0, 0};
     int16_t  appliedVal[NUM] = {-1, -1, -1, -1};
     bool     touched[NUM]    = {false, false, false, false};
+    bool     touchPal        = false;             // the color fader took control as "palette" (SHIFT was pressed)
     int32_t  restRaw16[NUM]  = {0, 0, 0, 0};      // rest position (inactive), scale x16
     int16_t  lastMoveRaw[NUM]= {0, 0, 0, 0};
     unsigned long lastMoveMs[NUM] = {0, 0, 0, 0};
@@ -82,13 +93,33 @@ class ConsoleFaders : public Usermod {
       return RGBW32(r, g, b, 0);
     }
 
+    // Fader position 0..255 -> palette ID, evenly over all palettes in the order of WLED's palette list:
+    // built-in (IDs 0..FIXED-1), usermod (IDs 255, 254, ...), custom (IDs 200, 199, ...).
+    static uint8_t paletteIdForPos(uint8_t v) {
+      const size_t fixedN = FIXED_PALETTE_COUNT;
+      const size_t umN    = usermodPalettes.size();
+      const size_t cuN    = customPalettes.size();
+      size_t i = ((size_t)v * (fixedN + umN + cuN)) >> 8;      // 0 .. total-1
+      if (i < fixedN) return (uint8_t)i;
+      i -= fixedN;
+      if (i < umN) return (uint8_t)(WLED_USERMOD_PALETTE_ID_BASE - i);
+      i -= umN;
+      return (uint8_t)(WLED_CUSTOM_PALETTE_ID_BASE - i);
+    }
+
     static void writeSeg(Segment& seg, uint8_t fn, uint8_t v) {
       switch (fn) {
         case FN_SPEED:     seg.speed = v;                    break;
         case FN_INTENSITY: seg.intensity = v;                break;
         case FN_COLOR:     seg.colors[0] = hueToColor(v);    break;
+        case FN_PALETTE:   seg.setPalette(paletteIdForPos(v)); break;
         default: break;
       }
+    }
+
+    // the color fader works as a palette selector: SHIFT pressed, standalone mode, function enabled
+    bool palModeNow() const {
+      return shiftPalette && !ConsoleBus::usbActive() && ConsoleBus::bus().shift;
     }
 
     void applyValue(uint8_t fn, uint8_t v) {
@@ -134,6 +165,7 @@ class ConsoleFaders : public Usermod {
   public:
     void setup() override {
       if (!enabled) return;
+      touchPal = false;
       for (uint8_t i = 0; i < NUM; i++) {
         active[i] = false;
         seeded[i] = false;
@@ -193,10 +225,21 @@ class ConsoleFaders : public Usermod {
           }
           // takes control: from here on the fader drives WLED until it stands still
           touched[i]     = true;
+          if (i == FN_COLOR) {
+            touchPal = palModeNow();                           // SHIFT pressed now: palette, otherwise hue
+            if (touchPal) ConsoleBus::bus().shiftUsed = true;  // SHIFT is a modifier here: no mode switch on a long hold
+          }
           appliedRaw[i]  = (int16_t)restRaw;                   // so that moved() is true right away
           lastMoveRaw[i] = (int16_t)rawVal[i];
           lastMoveMs[i]  = now;
         } else {
+          if (i == FN_COLOR && palModeNow() != touchPal) {
+            // SHIFT pressed or released (or USB mode changed) while in control: let go without a jump;
+            // the fader must be moved again to take control with the new function
+            touched[i]   = false;
+            restRaw16[i] = (int32_t)rawVal[i] * 16;
+            continue;
+          }
           if (abs((int)rawVal[i] - (int)lastMoveRaw[i]) >= hyst) {
             lastMoveRaw[i] = (int16_t)rawVal[i];
             lastMoveMs[i]  = now;
@@ -232,7 +275,7 @@ class ConsoleFaders : public Usermod {
             int16_t v7 = (int16_t)(target[i] >> 1);                                              // 0..255 -> 0..127
             if (v7 != lastCC[i]) { lastCC[i] = v7; ConsoleBus::cc((uint8_t)(ConsoleBus::CC_FADER_BASE + i), (uint8_t)v7); }
           } else {
-            applyValue(i, (uint8_t)target[i]);
+            applyValue((i == FN_COLOR && touchPal) ? FN_PALETTE : i, (uint8_t)target[i]);
             wledChanged = true;
           }
           appliedRaw[i] = (int16_t)rawVal[i];
@@ -257,15 +300,16 @@ class ConsoleFaders : public Usermod {
       char buf[40];
       snprintf(buf, sizeof(buf), "%u%s %u%s %u%s %u%s",
                rawVal[0], touched[0] ? "*" : "", rawVal[1], touched[1] ? "*" : "",
-               rawVal[2], touched[2] ? "*" : "", rawVal[3], touched[3] ? "*" : "");
+               rawVal[2], touched[2] ? "*" : "", rawVal[3], touched[3] ? (touchPal ? "P" : "*") : "");
       arr.add(String(buf));
-      arr.add(F("raw (* = active)"));
+      arr.add(F("raw (* = active, P = palette)"));
     }
 
     void addToConfig(JsonObject& root) override {
       JsonObject top = root.createNestedObject(FPSTR(_name));
       top["enabled"]        = enabled;
       top["invert"]         = invert;
+      top["shift-palette"]  = shiftPalette;   // SHIFT + color fader = palette
       top["pin-brightness"] = pins[0];
       top["pin-speed"]      = pins[1];
       top["pin-intensity"]  = pins[2];
@@ -284,6 +328,7 @@ class ConsoleFaders : public Usermod {
       bool ok = !top.isNull();
       ok &= getJsonValue(top["enabled"],        enabled, true);
       ok &= getJsonValue(top["invert"],         invert, true);
+      ok &= getJsonValue(top["shift-palette"],  shiftPalette, true);
       ok &= getJsonValue(top["pin-brightness"], pins[0], 1);
       ok &= getJsonValue(top["pin-speed"],      pins[1], 2);
       ok &= getJsonValue(top["pin-intensity"],  pins[2], 4);

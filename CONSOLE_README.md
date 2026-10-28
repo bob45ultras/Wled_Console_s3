@@ -51,8 +51,8 @@ Contents: [1 Hardware](#1-hardware) · [2 Package contents](#2-package-contents)
 
 | Path | What it is |
 |---|---|
-| `usermods/console_faders/` | 4 faders → brightness / speed / intensity / color, touch-activated |
-| `usermods/console_io/` | MCP23017 buttons, macro/BLACKOUT scanning, SHIFT/BACK/GO logic, encoder in USB mode |
+| `usermods/console_faders/` | 4 faders → brightness / speed / intensity / color (palette with SHIFT), touch-activated |
+| `usermods/console_io/` | MCP23017 buttons (publishes the SHIFT state), macro/BLACKOUT scanning, SHIFT/BACK/GO logic, encoder in USB mode |
 | `usermods/console_usb/` | USB composite device (MIDI + COM), USB/standalone mode switching, OLED "MIDI-USB" screen |
 | `usermods/console_dmx/` | Standalone DMX pins + ENTTEC DMX USB Pro bridge (+ `enttec_pro.h`) |
 | `usermods/console_eth/` | Info-page row for the W5500 (active only in `console_s3_eth`) |
@@ -158,7 +158,17 @@ control, the value jumps to the fader position.
 | 1 | 1 | Brightness (never reaches 0: use BLACKOUT or power to turn off) |
 | 2 | 2 | Effect speed of the selected segments (main segment if none selected) |
 | 3 | 4 | Effect intensity of the selected segments |
-| 4 | 5 | Primary color: hue sweep at full saturation |
+| 4 | 5 | Primary color: hue sweep at full saturation. **With SHIFT held: palette** (see below) |
+
+**SHIFT + color fader = palette.** Hold SHIFT and move the color fader: instead of the hue it selects the palette of the
+selected segments. The travel is divided evenly among all palettes, in the order of WLED's palette list (built-in,
+usermod, custom), so the ends of the fader are the first and the last palette. The function is decided when the fader
+takes control. If SHIFT is pressed or released while the fader is in control, it lets go without any jump and must be
+moved again (more than `touch`) to take control with the new function. Using it this way also cancels the
+"hold SHIFT = switch mode" action, so a long palette adjustment never changes the USB/standalone mode. In USB mode the
+fader only sends its MIDI CC, with or without SHIFT. `shift-palette` (Console-Faders) turns the function off.
+The Info page marks the fader `P` while it acts as a palette selector. With many palettes the steps are fine (about
+1 mm each): a short WLED transition time makes the changes feel more direct.
 
 ### Buttons (standalone mode)
 
@@ -169,7 +179,8 @@ control, the value jumps to the fader position.
 | BACK | Previous preset in `first-preset…last-preset`, immediately on press |
 | GO (short press) | Next preset, on release |
 | GO held ≥ `go-hold-ms` (3 s) | Network info screen on the OLED (7 s); the next preset is not triggered |
-| SHIFT held ≥ `mode-hold-ms` (3 s) | Switches USB ↔ standalone (see section 6). Cancelled if a macro is pressed during the hold |
+| SHIFT + color fader | Palette selection (see above) |
+| SHIFT held ≥ `mode-hold-ms` (3 s) | Switches USB ↔ standalone (see section 6). Cancelled if a macro is pressed or the color fader is used during the hold |
 | Encoder + OLED | Stock `rotary_encoder_ui_ALT` + `four_line_display_ALT` behaviour |
 
 BACK/GO wrap around at the ends of the range. A preset number that does not exist is skipped with one extra press.
@@ -300,6 +311,7 @@ Config → Usermods. Pin changes take effect after a reboot.
 |---|---|---|
 | `enabled` | on | |
 | `invert` | on | up = maximum |
+| `shift-palette` | on | SHIFT + color fader selects the palette (standalone only) |
 | `pin-brightness`, `pin-speed`, `pin-intensity`, `pin-color` | 1, 2, 4, 5 | |
 | `raw-min`, `raw-max` | 40, 4050 | ADC readings at the ends of travel |
 | `raw-mid` | 0 (off) | ADC reading at mid travel, for logarithmic-taper faders only |
@@ -330,7 +342,7 @@ Config → Usermods. Pin changes take effect after a reboot.
 
 | Row | Examples |
 |---|---|
-| Console-Faders | `812* 2034 55 4000` — raw ADC values, `*` = fader active |
+| Console-Faders | `812* 2034 55 4000P` — raw ADC values, `*` = fader active, `P` = color fader acting as palette selector |
 | Console-IO | `SHIFT BACK* GO @27` — `*` = pressed; `MCP23017 not found. On the bus: …`; `Global I2C not set` |
 | Console-USB | `USB mode (MIDI), MIDI sent: 1234`; `standalone (manual)`; `PC connected, waiting`; `not connected` |
 | Console-DMX | `standalone, input receiving, output 4210 frames`; `ENTTEC USB: PC>DMX 150, DMX>PC 12, dropped 0` |
@@ -363,6 +375,7 @@ Config → Usermods. Pin changes take effect after a reboot.
 | Faders (touch activation, all four parameters, calibration) | Verified on hardware |
 | Standalone buttons (macros, SHIFT + macro, BACK/GO, GO hold) | Verified on hardware |
 | USB MIDI (faders, buttons, encoder), OLED "MIDI-USB" screen, mode switching | Verified on hardware |
+| SHIFT + color fader = palette | Implemented and tested on the host (mapping, SHIFT changes mid-movement, USB mode); **hardware check pending** |
 | ENTTEC bridge (serial, parameters, PC → DMX frames) | Verified with `test_enttec.ps1` |
 | PCM1808 line-in with AudioReactive | Verified on hardware |
 | DMX output and input on real DMX equipment | **Pending** (needs a controller or a light) |

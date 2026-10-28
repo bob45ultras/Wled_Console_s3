@@ -30,7 +30,8 @@
  *                  normal preset does not start. What counts is SHIFT being pressed at the moment
  *                  the macro is pressed.
  *   SHIFT held     switches mode USB <-> standalone after "mode-hold-ms"; if a macro is pressed
- *                  during the hold, the mode change is cancelled.
+ *                  during the hold, or the color fader takes control (SHIFT + color fader = palette,
+ *                  see console_faders), the mode change is cancelled.
  *
  * Uses WLED's global I2C bus (Config > Usermods > Global I2C GPIOs):
  * SDA=GPIO8, SCL=GPIO9. WLED initializes it by itself, there is no Wire.begin() here.
@@ -277,7 +278,8 @@ class ConsoleIO : public Usermod {
       DEBUG_PRINTF("[console_io] %s %s\n", btnName(id), isPressed ? "pressed" : "released");
       const bool usb = ConsoleBus::usbActive();
       if (id == BTN_SHIFT) {
-        if (isPressed) { shiftSince = millis(); shiftFired = false; shiftUsed = false; }
+        ConsoleBus::bus().shift = isPressed;       // other usermods read it (SHIFT + color fader = palette)
+        if (isPressed) { shiftSince = millis(); shiftFired = false; shiftUsed = false; ConsoleBus::bus().shiftUsed = false; }
         else if (shiftFired) { shiftFired = false; return; }   // release after a long press: no note
       }
       // standalone: BACK = previous preset (immediately), GO = next (on release, if the press was
@@ -333,7 +335,7 @@ class ConsoleIO : public Usermod {
 
       uint8_t a;
       if (!readPortA(a)) {
-        if (++failCount >= 5) { present = false; failCount = 0; lastRetry = now; }
+        if (++failCount >= 5) { present = false; failCount = 0; lastRetry = now; ConsoleBus::bus().shift = false; }
         return;
       }
       failCount = 0;
@@ -356,7 +358,12 @@ class ConsoleIO : public Usermod {
       }
 
       // SHIFT held down: switches mode (USB <-> standalone WLED), in both directions.
-      // Cancelled if a macro was pressed during the hold (SHIFT used as a modifier).
+      // Cancelled if a macro was pressed during the hold, or another usermod used SHIFT as a modifier
+      // (SHIFT + color fader): SHIFT is then a modifier, not a mode switch.
+      if (ConsoleBus::bus().shiftUsed) {
+        ConsoleBus::bus().shiftUsed = false;
+        if (pressed[BTN_SHIFT]) shiftUsed = true;
+      }
       if (pressed[BTN_SHIFT] && !shiftFired && !shiftUsed && (now - shiftSince >= (unsigned long)modeHoldMs)) {
         shiftFired = true;
         ConsoleBus::note(ConsoleBus::NOTE_SHIFT, false);       // in USB mode, closes the note before switching
