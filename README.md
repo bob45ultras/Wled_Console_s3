@@ -30,8 +30,9 @@ Everything else (wiring, settings, MIDI map, DMX, troubleshooting, status) is in
 
 ## Status
 
-Verified on hardware: faders, standalone buttons, USB MIDI (faders, buttons, encoder), OLED "MIDI-USB" screen, ENTTEC bridge
-(PC test script), line-in audio. Pending: SHIFT + color fader = palette (new, host-tested), DMX on real equipment, W5500 with a working module, battery/power stage.
+Verified on hardware: faders (including SHIFT + color fader = palette), standalone buttons, USB MIDI (faders, buttons, encoder),
+OLED "MIDI-USB" screen, ENTTEC bridge (PC test script), line-in audio. Pending: DMX on real equipment, W5500 with a working
+module, battery/power stage.
 
 ## License
 

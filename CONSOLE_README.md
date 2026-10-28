@@ -372,10 +372,9 @@ Config → Usermods. Pin changes take effect after a reboot.
 
 | Area | Status |
 |---|---|
-| Faders (touch activation, all four parameters, calibration) | Verified on hardware |
+| Faders (touch activation, all four parameters, calibration, SHIFT + color fader = palette) | Verified on hardware |
 | Standalone buttons (macros, SHIFT + macro, BACK/GO, GO hold) | Verified on hardware |
 | USB MIDI (faders, buttons, encoder), OLED "MIDI-USB" screen, mode switching | Verified on hardware |
-| SHIFT + color fader = palette | Implemented and tested on the host (mapping, SHIFT changes mid-movement, USB mode); **hardware check pending** |
 | ENTTEC bridge (serial, parameters, PC → DMX frames) | Verified with `test_enttec.ps1` |
 | PCM1808 line-in with AudioReactive | Verified on hardware |
 | DMX output and input on real DMX equipment | **Pending** (needs a controller or a light) |
