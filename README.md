@@ -17,7 +17,7 @@ Tested on wled/WLED `main` commit `20e7a71` (2026-10-25), arduino-esp32 3.3.8.
 git clone https://github.com/wled/WLED.git WLED-main
 git -C WLED-main checkout 20e7a71
 git clone https://github.com/bob45ultras/Wled_Console_s3.git
-robocopy Wled_Console_s3 WLED-main /E /XD .git /XF README.md
+robocopy Wled_Console_s3 WLED-main /E /XD .git /XF README.md LICENSE
 cd WLED-main
 git apply --ignore-whitespace dmx_patch\patch_core_dmx.diff
 git apply --ignore-whitespace alt_patch\patch_alt.diff
@@ -36,4 +36,5 @@ module, battery/power stage.
 
 ## License
 
-The usermods use WLED's API; WLED is under the EUPL v. 1.2. A license for this repository has not been chosen yet.
+Copyright (c) 2026 E-Boats Systems, licensed under the [EUPL v. 1.2](LICENSE) (the same licence as WLED). Parts derived from
+WLED and third-party components are listed in [NOTICE](NOTICE). Short summary: [CONSOLE_README.md](CONSOLE_README.md#15-license).

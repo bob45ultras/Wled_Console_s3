@@ -10,7 +10,9 @@ Same interface used by WLED (initWrite / write / update), but:
   - "bridge" mode: used by the USB bridge (ENTTEC). When active, WLED's write()/update()
     are ignored and the DMX line is driven by bridgeFrame().
 
-Base: SparkFun ESP32 LED to DMX Shield, Andy England @ SparkFun Electronics, MIT License.
+Original: SparkFun ESP32 LED to DMX Shield library, Andy England @ SparkFun Electronics, 7/22/2019,
+released under the MIT License (http://opensource.org/licenses/MIT), distributed as-is, no warranty.
+Modifications: Copyright (c) 2026 E-Boats Systems, released under the same MIT License.
 ******************************************************************************/
 
 #include <inttypes.h>

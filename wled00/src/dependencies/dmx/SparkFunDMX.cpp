@@ -19,7 +19,9 @@ DMX512 frame timing:
   DATA   : start code + slots at 250000 baud, 8N2
   A full frame (513 bytes) lasts ~23 ms; the period is kept at >= 25 ms (<= 40 Hz).
 
-Base: SparkFun ESP32 LED to DMX Shield, Andy England @ SparkFun Electronics, MIT License.
+Original: SparkFun ESP32 LED to DMX Shield library, Andy England @ SparkFun Electronics, 7/22/2019,
+released under the MIT License (http://opensource.org/licenses/MIT), distributed as-is, no warranty.
+Modifications: Copyright (c) 2026 E-Boats Systems, released under the same MIT License.
 ******************************************************************************/
 
 #if !defined(ESP8266) && !defined(CONFIG_IDF_TARGET_ESP32C3) && !defined(CONFIG_IDF_TARGET_ESP32C5) && !defined(CONFIG_IDF_TARGET_ESP32C6) && !defined(CONFIG_IDF_TARGET_ESP32C61) && !defined(CONFIG_IDF_TARGET_ESP32S2)

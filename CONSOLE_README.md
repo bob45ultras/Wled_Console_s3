@@ -12,7 +12,7 @@ Contents: [1 Hardware](#1-hardware) · [2 Package contents](#2-package-contents)
 [4 First configuration](#4-first-configuration-in-wled) · [5 Operation](#5-operation) · [6 USB mode](#6-usb-mode) ·
 [7 DMX](#7-dmx) · [8 Audio](#8-audio) · [9 Ethernet](#9-ethernet-optional) · [10 Settings reference](#10-settings-reference) ·
 [11 Info page](#11-info-page) · [12 Troubleshooting](#12-troubleshooting) · [13 Status and limits](#13-status-and-limits) ·
-[14 Updating WLED](#14-updating-wled)
+[14 Updating WLED](#14-updating-wled) · [15 License](#15-license)
 
 ---
 
@@ -65,6 +65,7 @@ Contents: [1 Hardware](#1-hardware) · [2 Package contents](#2-package-contents)
 | `platformio_override.ini` | Environments `console_s3` and `console_s3_eth` |
 | `patch_dmx.txt`, `patch_eth.txt` | Detailed notes and manual fallbacks for the two core patches |
 | `test_enttec.ps1` | PC-side test of the ENTTEC bridge, no third-party software needed |
+| `NOTICE` | Copyright and third-party licences (the repository also has `LICENSE`, the EUPL-1.2 text, which WLED already ships) |
 
 ---
 
@@ -73,13 +74,13 @@ Contents: [1 Hardware](#1-hardware) · [2 Package contents](#2-package-contents)
 Requirements: PlatformIO (VS Code extension or CLI), git, a WLED `main` checkout (`WLED-main\`, a git repository).
 
 **1. Copy the files.** Extract `console_update.zip` over `WLED-main\` and confirm the overwrite. From the repository
-instead (PowerShell; `README.md` is excluded so WLED's own is kept):
+instead (PowerShell; `README.md` and `LICENSE` are excluded so WLED's own are kept):
 
 ```powershell
 git clone https://github.com/wled/WLED.git WLED-main
 git -C WLED-main checkout 20e7a71          # the commit this was tested on
 git clone https://github.com/bob45ultras/Wled_Console_s3.git
-robocopy Wled_Console_s3 WLED-main /E /XD .git /XF README.md
+robocopy Wled_Console_s3 WLED-main /E /XD .git /XF README.md LICENSE
 ```
 
 If you customised `platformio_override.ini`, merge by hand instead of overwriting it.
@@ -410,3 +411,15 @@ in `usermod_v2_four_line_display_ALT.cpp` replace `|| b // button 0 only` in `Fo
 with `|| true`.
 
 Keep your own work under version control (a branch or a fork) so the patched tree can be recreated from the diffs.
+
+---
+
+## 15. License
+
+Copyright (c) 2026 E-Boats Systems. Licensed under the **European Union Public Licence v. 1.2** (EUPL-1.2): see `LICENSE`.
+Third-party parts (patches to WLED, the modified SparkFun DMX driver, libraries used at build time) are listed in `NOTICE`.
+
+In short: using and modifying the firmware for yourself needs nothing. If you give or sell firmware or devices that contain it,
+the recipient must get the source (this repository plus the WLED commit it was built from), the `LICENSE` and `NOTICE`
+files, and the copyright notices kept. The firmware includes GPL-3.0 code (arduinoFFT, via audioreactive); the EUPL allows
+this combination, but not closed-source firmware. Schematics and enclosures are not covered. This is not legal advice.

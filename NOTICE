@@ -1,0 +1,75 @@
+Wled_Console_s3
+Copyright (c) 2026 E-Boats Systems
+
+The original work in this repository is licensed under the European Union Public Licence v. 1.2
+(EUPL-1.2). The full text is in the file LICENSE.
+
+This is not legal advice. Check the licences of the components listed below before distributing firmware or devices.
+
+---------------------------------------------------------------------------------
+1. WHAT IS UNDER WHICH LICENCE
+---------------------------------------------------------------------------------
+
+Original files, Copyright (c) 2026 E-Boats Systems, EUPL-1.2:
+  usermods/console_faders/, usermods/console_io/, usermods/console_usb/, usermods/console_dmx/,
+  usermods/console_eth/ (source files), wled00/console_bus.h, wled00/eth_w5500.cpp,
+  platformio_override.ini, test_enttec.ps1, the documentation (README.md, CONSOLE_README.md,
+  patch_dmx.txt, patch_eth.txt).
+
+Patches (dmx_patch/*.diff, alt_patch/*.diff, eth_patch/*.diff):
+  They modify files of WLED and contain parts of its source code, so they remain under WLED's licence,
+  EUPL v. 1.2 or later. WLED is Copyright (c) 2016-present Christian Schwinne and individual WLED
+  contributors (https://github.com/wled/WLED). The modifications are Copyright (c) 2026 E-Boats Systems.
+
+wled00/src/dependencies/dmx/SparkFunDMX.cpp and SparkFunDMX.h:
+  Modified versions of the SparkFun ESP32 LED to DMX Shield library, which is distributed with WLED.
+  Original: Copyright (c) 2019 SparkFun Electronics (Andy England), MIT License.
+  Modifications: Copyright (c) 2026 E-Boats Systems, released under the same MIT License.
+  The licence text is reproduced in section 3.
+
+---------------------------------------------------------------------------------
+2. COMPONENTS USED WHEN BUILDING (NOT INCLUDED IN THIS REPOSITORY)
+---------------------------------------------------------------------------------
+
+  WLED               EUPL v. 1.2 or later         https://github.com/wled/WLED
+  arduinoFFT         GPL-3.0 (library LICENSE)    used by the audioreactive usermod
+  U8g2               BSD 2-Clause (code)          used by the four-line display usermod
+  esp_dmx            MIT, Mitch Weisbrod          DMX input
+  Arduino-ESP32, ESP-IDF, TinyUSB                 framework and USB stack, each with its own licence
+
+A firmware binary that contains these components must be distributed under terms that satisfy all of them.
+The EUPL-1.2 lists the GPL v3 among its compatible licences (Appendix of the LICENSE file), so the combination
+is possible, but it does not allow closed-source firmware. Read the LICENSE file of each library (they are
+downloaded into .pio/libdeps when you build) when you distribute binaries.
+
+---------------------------------------------------------------------------------
+3. MIT LICENSE (SparkFunDMX.cpp / SparkFunDMX.h)
+---------------------------------------------------------------------------------
+
+MIT License
+
+Copyright (c) 2019 SparkFun Electronics (Andy England)
+Copyright (c) 2026 E-Boats Systems (modifications)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---------------------------------------------------------------------------------
+4. IF YOU DISTRIBUTE FIRMWARE OR DEVICES
+---------------------------------------------------------------------------------
+
+  - Give the recipient the source code of the firmware you distribute: the WLED commit it was built from
+    (see CONSOLE_README.md) plus this repository, including your own changes.
+  - Include the LICENSE file and this NOTICE, and keep all copyright notices.
+  - Schematics, circuit boards and enclosures of a device are not covered by these software licences.

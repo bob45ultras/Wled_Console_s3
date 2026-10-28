@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: EUPL-1.2
+// Copyright (c) 2026 E-Boats Systems
+
 #include "wled.h"
 #include "console_bus.h"
 #include "enttec_pro.h"

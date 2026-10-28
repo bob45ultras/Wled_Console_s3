@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: EUPL-1.2
+// Copyright (c) 2026 E-Boats Systems
+
 #include "wled.h"
 #include "fcn_declare.h"
 #include "wled_ethernet.h"

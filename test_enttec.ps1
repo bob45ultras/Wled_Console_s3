@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: EUPL-1.2
+# Copyright (c) 2026 E-Boats Systems
+
 # test_enttec.ps1 - tests the console's ENTTEC DMX USB Pro bridge, without QLC+
 #
 # Usage (PowerShell, console in USB mode: the OLED shows "MIDI-USB"):
