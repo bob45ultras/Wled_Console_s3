@@ -348,6 +348,7 @@ Config → Usermods. Pin changes take effect after a reboot.
 | Console-USB | `USB mode (MIDI), MIDI sent: 1234`; `standalone (manual)`; `PC connected, waiting`; `not connected` |
 | Console-DMX | `standalone, input receiving, output 4210 frames`; `ENTTEC USB: PC>DMX 150, DMX>PC 12, dropped 0` |
 | Console-ETH | `100 Mbps full, 192.168.1.50` and the error messages listed in `patch_eth.txt` |
+| E-Boats Systems | link to [www.eboatsystems.com](https://www.eboatsystems.com), always shown (added by Console-IO) |
 
 ---
 
@@ -416,7 +417,7 @@ Keep your own work under version control (a branch or a fork) so the patched tre
 
 ## 15. License
 
-Copyright (c) 2026 E-Boats Systems. Licensed under the **European Union Public Licence v. 1.2** (EUPL-1.2): see `LICENSE`.
+Copyright (c) 2026 [E-Boats Systems](https://www.eboatsystems.com). Licensed under the **European Union Public Licence v. 1.2** (EUPL-1.2): see `LICENSE`.
 Third-party parts (patches to WLED, the modified SparkFun DMX driver, libraries used at build time) are listed in `NOTICE`.
 
 In short: using and modifying the firmware for yourself needs nothing. If you give or sell firmware or devices that contain it,

@@ -3,7 +3,7 @@
 Standalone lighting console built on [WLED](https://github.com/wled/WLED) for an ESP32-S3-WROOM-1 N16R8:
 4 faders, 8 macro buttons + BLACKOUT, SHIFT / BACK / GO, rotary encoder, OLED, DMX in/out, PCM1808 line-in audio,
 and a native USB port that turns the panel into a USB MIDI controller and an ENTTEC DMX USB Pro interface.
-Optional W5500 Ethernet.
+Optional W5500 Ethernet. By [E-Boats Systems](https://www.eboatsystems.com).
 
 This repository is **not** a WLED fork. It holds only what is added to, or patched into, a WLED checkout, laid out like the
 WLED source tree: custom usermods (`usermods/console_*`), a few core files, three small patches
@@ -36,5 +36,5 @@ module, battery/power stage.
 
 ## License
 
-Copyright (c) 2026 E-Boats Systems, licensed under the [EUPL v. 1.2](LICENSE) (the same licence as WLED). Parts derived from
+Copyright (c) 2026 [E-Boats Systems](https://www.eboatsystems.com), licensed under the [EUPL v. 1.2](LICENSE) (the same licence as WLED). Parts derived from
 WLED and third-party components are listed in [NOTICE](NOTICE). Short summary: [CONSOLE_README.md](CONSOLE_README.md#15-license).
