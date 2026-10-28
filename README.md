@@ -1,9 +1,21 @@
 # Wled_Console_s3
 
-Standalone lighting console built on [WLED](https://github.com/wled/WLED) for an ESP32-S3-WROOM-1 N16R8:
-4 faders, 8 macro buttons + BLACKOUT, SHIFT / BACK / GO, rotary encoder, OLED, DMX in/out, PCM1808 line-in audio,
-and a native USB port that turns the panel into a USB MIDI controller and an ENTTEC DMX USB Pro interface.
-Optional W5500 Ethernet.
+A standalone lighting console built on [WLED](https://github.com/wled/WLED) for the ESP32-S3 (ESP32-S3-WROOM-1 N16R8).
+It runs without a computer, driven by hardware controls, and becomes a USB MIDI controller and a DMX-USB interface
+when connected to a PC.
+
+**Strengths**
+
+- **Standalone WLED console:** four touch-activated faders (brightness, speed, intensity, color), so a fader never overwrites
+  changes made from the web UI or presets until you move it. With SHIFT held, the color fader selects the palette.
+- **Fast control:** eight macro buttons, a BLACKOUT button, a SHIFT layer for eight more presets, and BACK / GO to step through presets.
+- **Audio-reactive:** line-in audio (PCM1808 on I2S) drives WLED's audio-reactive effects.
+- **DMX in/out:** a non-blocking DMX output driver and a DMX input, both on RS485.
+- **OLED and rotary encoder:** local display and encoder navigation, with the network info screen on demand.
+- **USB MIDI and DMX console:** when a PC is connected, faders, buttons and encoder are sent as USB MIDI, and the COM port acts as an
+  ENTTEC DMX USB Pro interface, usable with any program that speaks that protocol.
+- **Networking:** WiFi, plus optional wired Ethernet with a W5500 module.
+- **Reproducible and open:** small patches to stock WLED, documented step by step, EUPL-1.2 licensed.
 
 This repository is **not** a WLED fork. It holds only what is added to, or patched into, a WLED checkout, laid out like the
 WLED source tree: custom usermods (`usermods/console_*`), a few core files, three small patches
