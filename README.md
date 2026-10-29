@@ -27,6 +27,22 @@ WLED source tree: custom usermods (`usermods/console_*`), a few core files, thre
 
 Tested on wled/WLED `main` commit `20e7a71` (2026-10-25), arduino-esp32 3.3.8.
 
+## Prebuilt firmware
+
+No build needed: flashable binaries for the WiFi version (`console_s3`) are on the
+**[Releases page](https://github.com/bob45ultras/Wled_Console_s3/releases)**. First flash on an ESP32-S3-WROOM-1 N16R8, through the
+devkit's UART port:
+
+```
+esptool --chip esp32s3 --port COM5 --baud 460800 write-flash 0x0 Wled_Console_s3-v0.1.0-console_s3-factory.bin
+```
+
+- `...-factory.bin` is the full image (bootloader, partitions, firmware) and goes at `0x0` with esptool or a flasher. Never upload it through WLED's OTA page.
+- `...-ota.bin` is for updates of a console that already runs this firmware (WLED: Config → Security & Updates → Manual OTA).
+- No Ethernet build is published yet. Check `SHA256SUMS.txt` against the downloads. Details: [CONSOLE_README.md, section 3](CONSOLE_README.md#3-installation).
+
+To build from source, use the Quick start below.
+
 ## Quick start
 
 ```powershell
@@ -73,11 +89,11 @@ module, battery/power stage.
 <td width="50%"><img src="docs/images/controls-macros-encoder.jpg" alt="Eight macro buttons and the rotary encoder" width="100%"><br><sub>Eight macro buttons and the rotary encoder.</sub></td>
 </tr>
 <tr>
-<td width="50%"><img src="docs/images/oled-wled-screen.jpg" alt="OLED display showing the WLED status screen" width="100%"><br><sub>Power button, OLED and BLACKOUT button.</sub></td>
+<td width="50%"><img src="docs/images/oled-wled-screen.jpg" alt="Power button, OLED display and BLACKOUT button, wide view" width="100%"><br><sub>Power button, OLED and BLACKOUT button.</sub></td>
 <td width="50%"><img src="docs/images/oled-midi-usb.jpg" alt="OLED display showing the MIDI-USB screen" width="100%"><br><sub>OLED in USB mode: "MIDI-USB, controls via USB".</sub></td>
 </tr>
 <tr>
-<td width="50%" colspan="2" align="center"><img src="docs/images/oled-power-blackout.jpg" alt="Power button, OLED display and BLACKOUT button" width="50%"><br><sub>OLED: WLED status screen.</sub></td>
+<td width="50%" colspan="2" align="center"><img src="docs/images/oled-power-blackout.jpg" alt="Close-up of the OLED display showing the WLED status screen" width="50%"><br><sub>OLED: WLED status screen.</sub></td>
 </tr>
 </table>
 

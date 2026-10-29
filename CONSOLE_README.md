@@ -71,6 +71,33 @@ Contents: [1 Hardware](#1-hardware) · [2 Package contents](#2-package-contents)
 
 ## 3. Installation
 
+### Prebuilt firmware (no build)
+
+Each [release](https://github.com/bob45ultras/Wled_Console_s3/releases) has two binaries for the WiFi version (`console_s3`), built from
+WLED `20e7a71` plus this repository, and a `SHA256SUMS.txt` (check it with `sha256sum -c` or `Get-FileHash`). They only fit the
+ESP32-S3-WROOM-1 **N16R8**. The Ethernet build (`console_s3_eth`) is not published until the W5500 is verified.
+
+| File | Use |
+|---|---|
+| `Wled_Console_s3-<version>-console_s3-factory.bin` | **First flash.** One image (bootloader, partition table, firmware) written at `0x0`. |
+| `Wled_Console_s3-<version>-console_s3-ota.bin` | **Updates** of a console already running this firmware: WLED web UI, Config → Security & Updates → Manual OTA. |
+
+First flash through the devkit's **UART** port (see "Build and flash" below for BOOT/RESET):
+
+```
+esptool --chip esp32s3 --port COM5 --baud 460800 write-flash 0x0 Wled_Console_s3-v0.1.0-console_s3-factory.bin
+```
+
+Alternatives: Espressif's Flash Download Tool or [esptool-js](https://espressif.github.io/esptool-js/), file at address `0x0`.
+
+- The factory image covers only the first 1.4 MB of flash. On a board that already used this partition layout, WLED's filesystem
+  (settings, presets, WiFi credentials) stays in place. For factory settings, run `esptool --chip esp32s3 --port COM5 erase-flash` first.
+- The factory image is a full flash image, not an application: do not upload it through WLED's OTA page and do not write it
+  at `0x10000` instead of `0x0`. Either way the board may keep running its previous firmware.
+- Then continue with [section 4](#4-first-configuration-in-wled). To change the code or the pins, build from source as below.
+
+### Build from source
+
 Requirements: PlatformIO (VS Code extension or CLI), git, a WLED `main` checkout (`WLED-main\`, a git repository).
 
 **1. Copy the files.** Extract `console_update.zip` over `WLED-main\` and confirm the overwrite. From the repository
@@ -355,6 +382,7 @@ Config → Usermods. Pin changes take effect after a reboot.
 
 | Symptom | Cause / fix |
 |---|---|
+| After flashing, WLED shows an old version (e.g. 0.15.1) and no console usermods | The flash did not take effect. Write the **factory** image at `0x0` with esptool or a flasher, not through WLED's OTA page and not at `0x10000`; `erase-flash` first if in doubt |
 | Upload: "no sync reply", "serial TX path seems to be down" | Wire on GPIO44 (W5500 INT). Disconnect it. Otherwise BOOT + RESET and upload via the native USB port |
 | Fader 2 dead / reported in use | The DMX core patch is missing (stock WLED reserves GPIO2 for DMX) |
 | A fader works backwards | Toggle `invert` |
